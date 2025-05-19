@@ -7,16 +7,18 @@ public class gerstnerWaves : MonoBehaviour
 {
 
     //element
-
-    public Transform[] nodes;
+    private Mesh mesh;
+    public Vector3[] baseVertices;
+    public Vector3[] displacedVertices;
     public int numberOfNodes;
     public float distanceNodes;
 
 
     //wave position
+    /*
     private Vector3 position;
     public Vector2 initialPosition = new Vector2(0,0);
-    public Vector2[] allInitialPos;
+    public Vector2[] allInitialPos;*/
 
 
     //wave properties
@@ -30,9 +32,7 @@ public class gerstnerWaves : MonoBehaviour
 
 
     //time
-
     public float time = 0;
-    public float stepTime = 0.01f;
 
     //gravity
     private float gravity = 9.81f;
@@ -41,8 +41,10 @@ public class gerstnerWaves : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        generateStartpositions();
-        setInitialTransform();
+        mesh = GetComponent<MeshFilter>().mesh;
+
+        baseVertices = mesh.vertices;
+        displacedVertices = new Vector3[baseVertices.Length];
 
         waveVector = (2*Mathf.PI/waveLenght)* new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
         frequency =Mathf.Sqrt(waveVector.magnitude*gravity);
@@ -51,45 +53,20 @@ public class gerstnerWaves : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        time += stepTime;
-        for(int i = 0; i< numberOfNodes; i++)
+        time += Time.deltaTime;
+
+        for (int i = 0; i < baseVertices.Length; i++)
         {
-            nodes[i].position = calculateGerstnerWave(allInitialPos[i], time);
+            Vector3 vertex = baseVertices[i];
+
+            Vector2 worldXZ = new Vector2(vertex.x, vertex.z);
+            Vector2 displacedXZ = worldXZ - (waveVector.normalized * amplitude * Mathf.Sin(Vector2.Dot(waveVector, worldXZ) - frequency * time + phase));
+            float height = amplitude * Mathf.Cos(Vector2.Dot(waveVector, worldXZ) - frequency * time + phase);
+
+            displacedVertices[i] = new Vector3(displacedXZ.x, height, displacedXZ.y);
         }
-    }
 
-    Vector3 calculateGerstnerWave(Vector2 initialPoint, float time1)
-    {
-        Vector2 planePosition; //vector x
-        float height; //y
-
-        Vector3 newPosition;
-
-        planePosition = initialPoint - (waveVector /waveVector.magnitude)*amplitude*Mathf.Sin(Vector2.Dot(waveVector, initialPoint) - frequency * time+ phase);
-        height = amplitude * Mathf.Cos(Vector2.Dot(waveVector, initialPoint) - frequency * time + phase);
-
-        newPosition = new Vector3(planePosition.x, height, planePosition.y);
-
-        return newPosition;
-    }
-
-    void generateStartpositions()
-    {
-        allInitialPos =  new Vector2[numberOfNodes];
-
-        float distance = 0;
-
-        for (int i = 0; i < numberOfNodes; i++)
-        {
-            allInitialPos[i] = new Vector2(initialPosition.x, initialPosition.y +distance);
-            distance += distanceNodes;
-        }
-    }
-    void setInitialTransform()
-    {
-        for (int i = 0; i < numberOfNodes; i++)
-        {
-            nodes[i].position = new Vector3(allInitialPos[i].x, 0, allInitialPos[i].y);
-        }
+        mesh.vertices = displacedVertices;
+        mesh.RecalculateNormals(); 
     }
 }
