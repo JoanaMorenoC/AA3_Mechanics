@@ -19,22 +19,23 @@ public class WavesController : MonoBehaviour
     public SinusoidalWave sinusoidal;
 
     [Header("Sinusoidal Settings")]
-    public float sinusoidalLenght = 2f; //lambda
-    public float sinusoidalAmplitude = 1f;// A
-    public float sinusoidalSpeed = 1f;// A
-    private float sinusoidalAngle = Mathf.PI/2; //theta
+    public float sinusoidalAmplitude = 1f; // A
+    public float sinusoidalLength = 2f;    // lambda
+    public float sinusoidalSpeed = 1f;     // v
+    public float sinusoidalPhase = 0f;    //phi
 
     [Header("Gerstner Settings")]
-    public float gerstnerLenght = 2f; //lambda
-    public float gerstnerAmplitude = 1f;// A
-    public float sinusoidalPhase = 0f; //phi
+    public float gerstnerAmplitude = 1f; // A
+    public float gerstnerLength = 2f;    //lambda
+    public float gerstnerPhase = 0f;    //phi
+
+    private float gerstnerAngle = Mathf.PI / 2; //theta
 
     float frequency; // omega
     Vector2 gerstnerWaveVector; //vector k
 
     Wave sinusoidalInfo;
     Wave gerstnerInfo;
-
 
     //time
     public float time = 0;
@@ -44,6 +45,8 @@ public class WavesController : MonoBehaviour
 
     void Awake()
     {
+        
+
         MeshFilter mf = GetComponent<MeshFilter>();
         mesh = Instantiate(mf.mesh);
         mf.mesh = mesh;
@@ -51,16 +54,20 @@ public class WavesController : MonoBehaviour
         baseVertices = mesh.vertices;
         displacedVertices = new Vector3[baseVertices.Length];
 
-        gerstnerWaveVector = (2 * Mathf.PI / gerstnerLength) * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-        frequency = Mathf.Sqrt(waveVector.magnitude * gravity);
+        gerstnerWaveVector = (2 * Mathf.PI / gerstnerLength) * new Vector2(Mathf.Cos(gerstnerAngle), Mathf.Sin(gerstnerAngle));
+        frequency = Mathf.Sqrt(gerstnerWaveVector.magnitude * gravity);
 
-        waveInfo.waveLenght = waveLenght;
-        waveInfo.amplitude = amplitude;
-        waveInfo.speed = speed;
-        waveInfo.frequency = frequency;
-        waveInfo.phase = phase;
-        waveInfo.angle = angle;
-        waveInfo.vector = waveVector;
+        sinusoidalInfo.amplitude = sinusoidalAmplitude;
+        sinusoidalInfo.waveLenght = sinusoidalLength;
+        sinusoidalInfo.speed = sinusoidalSpeed;
+        sinusoidalInfo.phase = sinusoidalPhase;
+
+        gerstnerInfo.amplitude = gerstnerAmplitude;
+        gerstnerInfo.waveLenght = gerstnerLength;
+        gerstnerInfo.phase = gerstnerPhase;
+        gerstnerInfo.angle = gerstnerAngle;
+        gerstnerInfo.vector = gerstnerWaveVector;
+        gerstnerInfo.frequency = frequency;
     }
 
     void Update()
@@ -91,9 +98,12 @@ public class WavesController : MonoBehaviour
         mesh.RecalculateNormals();
     }
 
-    public Wave GetWaveInfo()
+    public Wave GetWaveInfo(Method method)
     {
-        return waveInfo;
+        if (method == Method.GERSTNER)
+            return gerstnerInfo;
+        else
+            return sinusoidalInfo;
     }
 
     public float GetTime()

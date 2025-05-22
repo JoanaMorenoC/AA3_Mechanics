@@ -7,7 +7,7 @@ public class SinusoidalWave : MonoBehaviour
 {
     public Vector3 CalculatePoint(Vector3 initialPoint, Wave waveInfo, float time)
     {
-        float height = waveInfo.amplitude * Mathf.Sin((2 * Mathf.PI) / waveInfo.waveLenght - (initialPoint.z - waveInfo.speed * time) + waveInfo.phase);
+        float height = GetWaveHeight(initialPoint, waveInfo, time);
 
         Vector3 newPointPosition = new Vector3(
             initialPoint.x,
@@ -17,9 +17,10 @@ public class SinusoidalWave : MonoBehaviour
 
         return newPointPosition;
     }
+
     public float GetWaveHeight(Vector3 position, Wave waveInfo, float time)
     {
-        float speed = waveInfo.frequency * waveInfo.waveLenght;
-        return waveInfo.amplitude * Mathf.Sin((2 * Mathf.PI) / waveInfo.waveLenght - (position.x - speed * time) + waveInfo.phase);
+        float height = waveInfo.amplitude * Mathf.Sin((2 * Mathf.PI) / waveInfo.waveLenght - (position.z - waveInfo.speed * time) + waveInfo.phase);
+        return height;
     }
 }

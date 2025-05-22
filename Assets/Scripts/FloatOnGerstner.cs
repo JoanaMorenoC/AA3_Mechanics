@@ -11,7 +11,7 @@ public class FloatOnGerstner : MonoBehaviour
     void Start()
     {
         initialPosition = transform.position;
-        waveInfo = waveSystem.GetWaveInfo();
+        waveInfo = waveSystem.GetWaveInfo(Method.GERSTNER);
     }
 
     void Update()
