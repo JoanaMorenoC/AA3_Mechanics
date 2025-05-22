@@ -157,8 +157,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   waveSystem: {fileID: 1455200124}
   radius: 0.5
-  mass: 1
-  density: 1000
+  mass: 125
+  damping: 0.95
 --- !u!135 &174502734
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -238,7 +238,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 174502732}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.6886525, y: -0.13328937, z: -3.3005812}
+  m_LocalPosition: {x: 4.6886525, y: 0.13, z: -3.3005812}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -672,8 +672,8 @@ MonoBehaviour:
   method: 1
   gerstner: {fileID: 1455200128}
   sinusoidal: {fileID: 1455200129}
-  waveLenght: 1
-  amplitude: 0.4
+  waveLenght: 0.05
+  amplitude: 0.2
   phase: 5
   time: 0
 --- !u!23 &1455200125

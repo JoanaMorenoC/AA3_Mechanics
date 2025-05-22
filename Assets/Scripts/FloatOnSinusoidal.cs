@@ -5,47 +5,81 @@ public class FloatOnSinusoidal : MonoBehaviour
     public WavesController waveSystem;
     private Wave waveInfo;
 
-    public float radius = 0.5f; // Supón que la boya es una esfera
-    public float mass = 1f;     // Masa de la boya
-    public float density = 1000f; // Densidad del agua
+    public float radius = 0.5f;
+    public float mass = 500f;
+    public float damping = 0.98f;
 
-    private float velocity = 0f; // Solo eje Y
+    private Vector3 previousPosition;
     private float gravity = -9.81f;
 
     void Start()
     {
         waveInfo = waveSystem.GetWaveInfo();
+        previousPosition = transform.position;
     }
 
     void Update()
     {
-        if (waveSystem == null || waveSystem.GetCurrentMethod() != Method.SINUSOIDAL) return;
+        if (waveSystem == null || waveSystem.GetCurrentMethod() != Method.SINUSOIDAL)
+            return;
 
         float time = waveSystem.GetTime();
-        Vector3 pos = transform.position;
+        Vector3 currentPosition = transform.position;
 
-        // Altura del agua en la posición de la boya
-        float waterHeight = waveSystem.sinusoidal.GetWaveHeight(pos, waveInfo, time);
+        float waterHeight = waveSystem.sinusoidal.GetWaveHeight(currentPosition, waveInfo, time);
+        bool isSubmerged = currentPosition.y - radius < waterHeight;
 
-        // ¿Cuánto está sumergida la boya?
-        float bottom = pos.y - radius;
-        float submergedDepth = Mathf.Clamp(waterHeight - bottom, 0, 2 * radius);
+        float totalForce;
 
-        // Volumen desplazado (esfera parcialmente sumergida)
-        float displacedVolume = (Mathf.PI * submergedDepth * submergedDepth * (3 * radius - submergedDepth)) / 3f;
+        if (isSubmerged)
+        {
+            float gravityForce = GetGravityForce();
+            float buoyantForce = GetBuoyantForce(waterHeight);
+            totalForce = gravityForce + buoyantForce;
+        }
+        else
+        {
+            totalForce = GetGravityForce();
+        }
 
-        // Fuerza de flotación
-        float buoyantForce = density * -gravity * displacedVolume;
+        float acceleration = totalForce / mass;
+        float dt = Time.deltaTime;
 
-        // Fuerza neta y aceleración
-        float weight = mass * gravity;
-        float netForce = buoyantForce + weight;
-        float acceleration = netForce / mass;
+        Vector3 velocity = currentPosition - previousPosition;
+        if (isSubmerged)
+            velocity *= damping;
 
-        // Integrar velocidad y posición
-        velocity += acceleration * Time.deltaTime;
-        pos.y += velocity * Time.deltaTime;
+        Vector3 newPosition = currentPosition + velocity + Vector3.up * acceleration * dt * dt;
 
-        transform.position = pos;
+        previousPosition = currentPosition;
+        transform.position = newPosition;
+    }
+
+    float GetGravityForce()
+    {
+        return mass * gravity;
+    }
+
+    float GetBuoyantForce(float waterHeight)
+    {
+        float fluidDensity = 1000;
+        float displacedVolume = GetDisplacedVolume(waterHeight);
+
+        return fluidDensity * Mathf.Abs(gravity) * displacedVolume;
+    }
+
+    float GetDisplacedVolume(float waterHeight)
+    {
+        float heightOfDisplacedVolume = waterHeight - (transform.position.y - radius);
+        heightOfDisplacedVolume = Mathf.Clamp(heightOfDisplacedVolume, 0f, 2f * radius);
+
+        if (heightOfDisplacedVolume >= 2.0f * radius)
+        {
+            return 4.0f / 3.0f * Mathf.PI * Mathf.Pow(radius, 3);
+        }
+        else
+        {
+            return 1.0f / 3.0f * Mathf.PI * Mathf.Pow(heightOfDisplacedVolume, 2) * (3 * radius - heightOfDisplacedVolume);
+        }
     }
 }
