@@ -12,21 +12,28 @@ public class WavesController : MonoBehaviour
     private Mesh mesh;
     public Vector3[] baseVertices;
     public Vector3[] displacedVertices;
-    public int numberOfNodes;
-    public float distanceNodes;
 
     //wave properties
     public Method method;
     public GerstnerWave gerstner;
     public SinusoidalWave sinusoidal;
 
-    public float waveLenght = 2f; //lambda
-    public float amplitude = 1f;// A
+    [Header("Sinusoidal Settings")]
+    public float sinusoidalLenght = 2f; //lambda
+    public float sinusoidalAmplitude = 1f;// A
+    public float sinusoidalSpeed = 1f;// A
+    private float sinusoidalAngle = Mathf.PI/2; //theta
+
+    [Header("Gerstner Settings")]
+    public float gerstnerLenght = 2f; //lambda
+    public float gerstnerAmplitude = 1f;// A
+    public float sinusoidalPhase = 0f; //phi
+
     float frequency; // omega
-    public float phase = 0f; //phi
-    private float angle = Mathf.PI/2; //theta
-    Vector2 waveVector; //vector k
-    Wave waveInfo;
+    Vector2 gerstnerWaveVector; //vector k
+
+    Wave sinusoidalInfo;
+    Wave gerstnerInfo;
 
 
     //time
@@ -44,11 +51,12 @@ public class WavesController : MonoBehaviour
         baseVertices = mesh.vertices;
         displacedVertices = new Vector3[baseVertices.Length];
 
-        waveVector = (2 * Mathf.PI / waveLenght) * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+        gerstnerWaveVector = (2 * Mathf.PI / gerstnerLength) * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
         frequency = Mathf.Sqrt(waveVector.magnitude * gravity);
 
         waveInfo.waveLenght = waveLenght;
         waveInfo.amplitude = amplitude;
+        waveInfo.speed = speed;
         waveInfo.frequency = frequency;
         waveInfo.phase = phase;
         waveInfo.angle = angle;
@@ -59,15 +67,23 @@ public class WavesController : MonoBehaviour
     {
         time += Time.deltaTime;
 
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (method == Method.GERSTNER)
+                method = Method.SINUSOIDAL;
+            else
+                method = Method.GERSTNER;
+        }
+
         switch(method)
         {
             case Method.GERSTNER:
                 for (int i = 0; i < baseVertices.Length; i++)
-                    displacedVertices[i] = gerstner.CalculatePoint(baseVertices[i], waveInfo, time);
+                    displacedVertices[i] = gerstner.CalculatePoint(baseVertices[i], gerstnerInfo, time);
                 break;
             case Method.SINUSOIDAL:
                 for (int i = 0; i < baseVertices.Length; i++)
-                    displacedVertices[i] = sinusoidal.CalculatePoint(baseVertices[i], waveInfo, time);
+                    displacedVertices[i] = sinusoidal.CalculatePoint(baseVertices[i], sinusoidalInfo, time);
                 break;
         }
         

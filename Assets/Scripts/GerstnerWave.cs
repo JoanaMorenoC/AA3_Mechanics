@@ -15,9 +15,9 @@ public class GerstnerWave : MonoBehaviour
         Vector2 displacementXZ = waveInfo.vector.normalized * waveInfo.amplitude * Mathf.Sin(wave);
 
         Vector3 newPointPosition = new Vector3(
-            initialPoint.x + displacementXZ.x,
+            initialPoint.x - displacementXZ.x,
             displacementY,
-            initialPoint.z + displacementXZ.y
+            initialPoint.z - displacementXZ.y
         );
 
         return newPointPosition;
