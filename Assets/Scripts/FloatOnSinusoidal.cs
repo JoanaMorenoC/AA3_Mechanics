@@ -5,17 +5,18 @@ public class FloatOnSinusoidal : MonoBehaviour
     public WavesController waveSystem;
     private Wave waveInfo;
 
+    public Vector3 positionOffset;
     public float radius = 0.5f;
     public float mass = 500f;
     public float damping = 0.98f;
 
-    private Vector3 previousPosition;
+    private Vector3 velocity;
     private float gravity = -9.81f;
 
     void Start()
     {
-        waveInfo = waveSystem.GetWaveInfo();
-        previousPosition = transform.position;
+        waveInfo = waveSystem.GetWaveInfo(Method.SINUSOIDAL);
+        velocity = Vector3.zero;
     }
 
     void Update()
@@ -24,62 +25,59 @@ public class FloatOnSinusoidal : MonoBehaviour
             return;
 
         float time = waveSystem.GetTime();
-        Vector3 currentPosition = transform.position;
+
+        Vector3 visualPosition = transform.position;
+        Vector3 currentPosition = visualPosition - positionOffset;
 
         float waterHeight = waveSystem.sinusoidal.GetWaveHeight(currentPosition, waveInfo, time);
         bool isSubmerged = currentPosition.y - radius < waterHeight;
 
-        float totalForce;
-
+        float totalForce = GetGravityForce();
         if (isSubmerged)
-        {
-            float gravityForce = GetGravityForce();
-            float buoyantForce = GetBuoyantForce(waterHeight);
-            totalForce = gravityForce + buoyantForce;
-        }
-        else
-        {
-            totalForce = GetGravityForce();
-        }
+            totalForce += GetBuoyantForce(waterHeight, currentPosition);
 
         float acceleration = totalForce / mass;
         float dt = Time.deltaTime;
 
-        Vector3 velocity = currentPosition - previousPosition;
+        velocity += Vector3.up * acceleration * dt;
         if (isSubmerged)
             velocity *= damping;
 
-        Vector3 newPosition = currentPosition + velocity + Vector3.up * acceleration * dt * dt;
-
-        previousPosition = currentPosition;
-        transform.position = newPosition;
+        Vector3 newPosition = currentPosition + velocity * dt;
+        transform.position = newPosition + positionOffset;
     }
 
-    float GetGravityForce()
-    {
-        return mass * gravity;
-    }
+    float GetGravityForce() => mass * gravity;
 
-    float GetBuoyantForce(float waterHeight)
+    float GetBuoyantForce(float waterHeight, Vector3 position)
     {
-        float fluidDensity = 1000;
-        float displacedVolume = GetDisplacedVolume(waterHeight);
-
+        float fluidDensity = 1000f;
+        float displacedVolume = GetDisplacedVolume(waterHeight, position);
         return fluidDensity * Mathf.Abs(gravity) * displacedVolume;
     }
 
-    float GetDisplacedVolume(float waterHeight)
+    float GetDisplacedVolume(float waterHeight, Vector3 position)
     {
-        float heightOfDisplacedVolume = waterHeight - (transform.position.y - radius);
-        heightOfDisplacedVolume = Mathf.Clamp(heightOfDisplacedVolume, 0f, 2f * radius);
+        float height = waterHeight - (position.y - radius);
+        height = Mathf.Clamp(height, 0f, 2f * radius);
 
-        if (heightOfDisplacedVolume >= 2.0f * radius)
-        {
-            return 4.0f / 3.0f * Mathf.PI * Mathf.Pow(radius, 3);
-        }
+        if (height >= 2f * radius)
+            return 4f / 3f * Mathf.PI * Mathf.Pow(radius, 3);
         else
-        {
-            return 1.0f / 3.0f * Mathf.PI * Mathf.Pow(heightOfDisplacedVolume, 2) * (3 * radius - heightOfDisplacedVolume);
-        }
+            return 1f / 3f * Mathf.PI * Mathf.Pow(height, 2) * (3 * radius - height);
+    }
+
+    void OnDrawGizmos()
+    {
+        Vector3 physicalPosition = transform.position - positionOffset;
+
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(physicalPosition, radius);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, 0.1f);
+
+        Gizmos.color = Color.white;
+        Gizmos.DrawLine(transform.position, physicalPosition);
     }
 }

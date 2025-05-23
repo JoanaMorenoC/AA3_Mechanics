@@ -11,7 +11,7 @@ public class FloatOnGerstner : MonoBehaviour
     void Start()
     {
         initialPosition = transform.position;
-        waveInfo = waveSystem.GetWaveInfo();
+        waveInfo = waveSystem.GetWaveInfo(Method.GERSTNER);
     }
 
     void Update()
@@ -34,9 +34,9 @@ public class FloatOnGerstner : MonoBehaviour
         Vector2 horizontalDisplacement = waveVector.normalized * amplitude * Mathf.Sin(wave);
 
         transform.position = new Vector3(
-            worldXZ.x + horizontalDisplacement.x,
+            worldXZ.x - horizontalDisplacement.x,
             y,
-            worldXZ.y + horizontalDisplacement.y
+            worldXZ.y - horizontalDisplacement.y
         );
     }
 }

@@ -12,22 +12,30 @@ public class WavesController : MonoBehaviour
     private Mesh mesh;
     public Vector3[] baseVertices;
     public Vector3[] displacedVertices;
-    public int numberOfNodes;
-    public float distanceNodes;
 
     //wave properties
     public Method method;
     public GerstnerWave gerstner;
     public SinusoidalWave sinusoidal;
 
-    public float waveLenght = 2f; //lambda
-    public float amplitude = 1f;// A
-    float frequency; // omega
-    public float phase = 0f; //phi
-    private float angle = Mathf.PI/2; //theta
-    Vector2 waveVector; //vector k
-    Wave waveInfo;
+    [Header("Sinusoidal Settings")]
+    public float sinusoidalAmplitude = 1f; // A
+    public float sinusoidalLength = 2f;    // lambda
+    public float sinusoidalSpeed = 1f;     // v
+    public float sinusoidalPhase = 0f;    //phi
 
+    [Header("Gerstner Settings")]
+    public float gerstnerAmplitude = 1f; // A
+    public float gerstnerLength = 2f;    //lambda
+    public float gerstnerPhase = 0f;    //phi
+
+    private float gerstnerAngle = Mathf.PI / 2; //theta
+
+    float frequency; // omega
+    Vector2 gerstnerWaveVector; //vector k
+
+    Wave sinusoidalInfo;
+    Wave gerstnerInfo;
 
     //time
     public float time = 0;
@@ -37,6 +45,8 @@ public class WavesController : MonoBehaviour
 
     void Awake()
     {
+        
+
         MeshFilter mf = GetComponent<MeshFilter>();
         mesh = Instantiate(mf.mesh);
         mf.mesh = mesh;
@@ -44,30 +54,43 @@ public class WavesController : MonoBehaviour
         baseVertices = mesh.vertices;
         displacedVertices = new Vector3[baseVertices.Length];
 
-        waveVector = (2 * Mathf.PI / waveLenght) * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-        frequency = Mathf.Sqrt(waveVector.magnitude * gravity);
+        gerstnerWaveVector = (2 * Mathf.PI / gerstnerLength) * new Vector2(Mathf.Cos(gerstnerAngle), Mathf.Sin(gerstnerAngle));
+        frequency = Mathf.Sqrt(gerstnerWaveVector.magnitude * gravity);
 
-        waveInfo.waveLenght = waveLenght;
-        waveInfo.amplitude = amplitude;
-        waveInfo.frequency = frequency;
-        waveInfo.phase = phase;
-        waveInfo.angle = angle;
-        waveInfo.vector = waveVector;
+        sinusoidalInfo.amplitude = sinusoidalAmplitude;
+        sinusoidalInfo.waveLenght = sinusoidalLength;
+        sinusoidalInfo.speed = sinusoidalSpeed;
+        sinusoidalInfo.phase = sinusoidalPhase;
+
+        gerstnerInfo.amplitude = gerstnerAmplitude;
+        gerstnerInfo.waveLenght = gerstnerLength;
+        gerstnerInfo.phase = gerstnerPhase;
+        gerstnerInfo.angle = gerstnerAngle;
+        gerstnerInfo.vector = gerstnerWaveVector;
+        gerstnerInfo.frequency = frequency;
     }
 
     void Update()
     {
         time += Time.deltaTime;
 
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (method == Method.GERSTNER)
+                method = Method.SINUSOIDAL;
+            else
+                method = Method.GERSTNER;
+        }
+
         switch(method)
         {
             case Method.GERSTNER:
                 for (int i = 0; i < baseVertices.Length; i++)
-                    displacedVertices[i] = gerstner.CalculatePoint(baseVertices[i], waveInfo, time);
+                    displacedVertices[i] = gerstner.CalculatePoint(baseVertices[i], gerstnerInfo, time);
                 break;
             case Method.SINUSOIDAL:
                 for (int i = 0; i < baseVertices.Length; i++)
-                    displacedVertices[i] = sinusoidal.CalculatePoint(baseVertices[i], waveInfo, time);
+                    displacedVertices[i] = sinusoidal.CalculatePoint(baseVertices[i], sinusoidalInfo, time);
                 break;
         }
         
@@ -75,9 +98,12 @@ public class WavesController : MonoBehaviour
         mesh.RecalculateNormals();
     }
 
-    public Wave GetWaveInfo()
+    public Wave GetWaveInfo(Method method)
     {
-        return waveInfo;
+        if (method == Method.GERSTNER)
+            return gerstnerInfo;
+        else
+            return sinusoidalInfo;
     }
 
     public float GetTime()
