@@ -74,7 +74,7 @@ public class WavesController : MonoBehaviour
     {
         time += Time.deltaTime;
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Return))
         {
             if (method == Method.GERSTNER)
                 method = Method.SINUSOIDAL;
